@@ -1,13 +1,16 @@
 import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { FaUser } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/login'); // Redirect to login page after logout
     } catch (error) {
       console.error("Failed to log out", error);
     }
@@ -25,7 +28,16 @@ const Navbar: React.FC = () => {
               Logout
             </button>
           </div>
-        ) : null}
+        ) : (
+          <div className="space-x-4">
+            <NavLink to="/login" className={({ isActive }) => (isActive ? "text-green-900" : "text-black")}>
+              Login
+            </NavLink>
+            <NavLink to="/signup" className={({ isActive }) => (isActive ? "text-green-900" : "text-black")}>
+              Signup
+            </NavLink>
+          </div>
+        )}
       </div>
     </nav>
   );
