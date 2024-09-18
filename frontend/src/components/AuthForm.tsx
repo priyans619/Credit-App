@@ -1,49 +1,48 @@
-import { useState, FormEvent } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { auth, db } from './/../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
-// props for the AuthForm component
 interface AuthFormProps {
   isLogin: boolean;
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ isLogin }) => {
-  const [name, setName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!isLogin && password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
+        navigate('/dashboard'); // Redirect to dashboard after login
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Update user profile with display name
         await updateProfile(user, { displayName: name });
-
-        // Add user information to Firestore
         await setDoc(doc(db, 'users', user.uid), {
           displayName: name,
           email: user.email,
         });
 
-        alert('User created successfully');
+        navigate('/dashboard'); // Redirect to dashboard after signup
       }
     } catch (error: any) {
       setError(error.message);
@@ -53,7 +52,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin }) => {
   return (
     <div className="mt-8">
       {error && <p className="text-red-500">{error}</p>}
-      <form id={isLogin ? 'login-form' : 'signup-form'} onSubmit={handleSubmit}>
+      <form id={isLogin ? "login-form" : "signup-form"} onSubmit={handleSubmit}>
         <div className="rounded-md space-y-6">
           {!isLogin && (
             <div className="mb-4">
